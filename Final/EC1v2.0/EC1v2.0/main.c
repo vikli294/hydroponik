@@ -15,11 +15,7 @@
 ISR(TCC0_CCB_vect)
 {
 	cli();
-	/*
-	if(PORTC.IN & PIN1_bm)
-	{
-		reti();
-	}*/
+	
 	_delay_us(1);
 	uint32_t sum1 = 0;
 	uint32_t sum2 = 0;
@@ -31,10 +27,10 @@ ISR(TCC0_CCB_vect)
 	float voltage1Avg = sum1/ANTAL_SAMPLES;
 	float voltage2Avg = sum2/ANTAL_SAMPLES;
 	
-	voltage1Avg = (voltage1Avg + 0x50) * 1; //0.75;
-	voltage2Avg = (voltage2Avg + 0xB0) * 1; //0.91;
+	voltage1Avg = (voltage1Avg + 0x50) * 1; //(Resultat + Offset-kalibrering ) * Gain-Kallibrering;
+	voltage2Avg = (voltage2Avg + 0xB0) * 1;
 	
-	if(voltage1Avg < 0.09 | voltage2Avg < 0.09)
+	if(voltage1Avg < 0.09 | voltage2Avg < 0.09) //Om sample tas i den negativa delen av perioden
 	{
 		reti();
 	}
@@ -42,7 +38,9 @@ ISR(TCC0_CCB_vect)
 	
 	data_t data = GetData(voltage1Avg, voltage2Avg);
 	
-	/*sprintf(string, "V1: %f \r", data.voltage1);
+	// Skicka data
+	
+	sprintf(string, "V1: %f \r", data.voltage1);
 	UsartTxString(string);
 		
 	sprintf(string, "V2: %f \r", data.voltage2);
@@ -52,9 +50,6 @@ ISR(TCC0_CCB_vect)
 	UsartTxString(string);
 		
 	sprintf(string, "EC: %f \r", data.konduktivitet);
-	UsartTxString(string);
-	*/
-	sprintf(string, "EC: %.1f \r", data.konduktivitet);
 	UsartTxString(string);
 	_delay_ms(500);
 	reti();
