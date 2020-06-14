@@ -21,36 +21,31 @@ int main(void)
 	
 	float ph = 7;
 	float voltage = 1337;
-	float sum;
+	float sum = 0;
 	uint16_t sample1 = 0;
 	char string[80];
 	
-    /* Replace with your application code */
     while (1) 
     {
 		for(uint16_t i = 0 ; i < 128; i++)
 		{
-		ph = GetPh();
-		_delay_ms(1);
-		sum = sum + ph;
+			ph = GetPh();
+			_delay_ms(1);
+			sum = sum + ph;
 		}
 		sum = sum/128;
 		sample1 = AdcSamplePH();
 		voltage = GetVoltage(sample1);
-		/*
-		sprintf(string, "%.1f \r", sum);
-		UsartTxString(string);
-		_delay_ms(1000);
-		*/
-		ph = 7.1;
+
+		//skicka
 		sprintf(string, "pH: %.1f \r", ph);
 		UsartTxString(string);
-		/*
+		
 		sprintf(string, "voltage: %.2f \r", voltage);
 		UsartTxString(string);*/
 		
 		sum = 0;
-		//_delay_ms(100);
+		_delay_ms(100);
     }
 }
 

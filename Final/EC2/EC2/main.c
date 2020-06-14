@@ -27,6 +27,8 @@ ISR(PORTC_INT1_vect)
 			
 	TimerReset();
 	//reset timer
+	
+	//Skicka
 	sprintf(string, "EC: %f \r", EC);
 	UsartTxString(string);
 	sprintf(string, "Tid: %f \r", tid);
@@ -48,6 +50,7 @@ int main(void)
 	EnableEC2();
     while (1) 
     {
+		//Togglar LEDs i debugsyfte
 		if(PORTC.IN & PIN4_bm)
 		{
 			PORTE.OUTSET = 0xff;
@@ -64,7 +67,7 @@ int main(void)
 		{
 			PORTE.OUTSET = 0xff;
 		}
-		//weeee
+		//Vänta på interrupt
     }
 }
 

@@ -7,7 +7,6 @@ void ClockSetup();
 void PortSetupEC2();
 void EnableEC2();
 void DisableEC2();
-//uint8_t readCalibByte(uint8_t index);
 void TimerSetup();
 void TimerStop();
 void TimerStart();

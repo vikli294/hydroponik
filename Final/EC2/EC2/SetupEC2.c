@@ -23,22 +23,19 @@ void ClockSetup()
 	OSC.CTRL	=	OSC_XOSCEN_bm;
 	while(!(OSC_STATUS & OSC_XOSCRDY_bm));
 	
-	CCP			=	CCP_IOREG_gc;				//Tillåt ändring av klockan. Configuration Change Protection av
-	CLK.CTRL	=	CLK_SCLKSEL_XOSC_gc;		//Välj externklocka
+	CCP			=	CCP_IOREG_gc;				
+	CLK.CTRL	=	CLK_SCLKSEL_XOSC_gc;		
 
 	CCP			=	CCP_IOREG_gc;
 	CLK.PSCTRL	=	CLK_PSADIV_1_gc | CLK_PSBCDIV_1_1_gc;	//Div: clk_per4 = 1 Div: CLKper2 =1, CLK_cpu = 1, CLK_per =1
 	
 	CCP			= CCP_IOREG_gc;
 	OSC.XOSCFAIL = OSC_XOSCFDEN_bm;
-	
-	//CCP			=	CCP_IOREG_gc;
-	//CLK.LOCK	=	CLK_LOCK_bm;				//Lås klockan tills nästa reset
 }
 void PortSetupEC2()
 {
 	//PortB konfig.	
-	PORTB.DIRSET	=	PIN3_bm;									//dac
+	PORTB.DIRSET	=	PIN3_bm;								//dac
 	PORTB.DIRSET	=	PIN2_bm;								//OUT:	Pin2 = ECS-DAC-1.2
 	//PortC konfig.
 	PORTC.DIRSET	=	PIN0_bm | PIN3_bm;						//OUT: Pin0=ECK-SWITCH, Pin3 = Turn off eck
@@ -51,7 +48,7 @@ void PortSetupEC2()
 }
 void EnableEC2()
 {
-	DACB.CH1DATA = 824;								//1351DAC på 0,33 V
+	DACB.CH1DATA = 824;								//DAC på
 	PORTE.OUTSET = 0xff;							//LED på
 	PORTC.OUTCLR = PIN3_bm;
 	PORTF.OUTSET = PIN0_bm;
@@ -70,8 +67,8 @@ void TimerSwitchSetup()
 	TCC0.CTRLB	=	TC_WGMODE_FRQ_gc | TC0_CCAEN_bm;		//PortC.PIN0 -> switch
 	
 	TCC0.CCA	=	60000-1;
-	TCC0.CCB	=	60000-1; //20000-1 => 100 Hz		ECS-SWITCH: f_freq =  8M / (2 * CLKSEL_DIV (CCB + 1) )
-	//TCC0.CCB	=	0;//20000-1; //20000-1 => 100 Hz		ECS-SWITCH: f_freq =  8M / (2 * CLKSEL_DIV (CCB + 1) )
+	TCC0.CCB	=	60000-1;		
+	//ECK-SWITCH: f_freq =  8M / (2 * CLKSEL_DIV (CCB + 1) )
 	
 	TCC0.CCC = 0xffff;
 	TCC0.CCD = 0xffff;
@@ -114,11 +111,9 @@ void DacSetup()
 	DACB.CH1GAINCAL = 0x85; //readCalibByte(PRODSIGNATURES_DACB0GAINCAL);		//Läs in kalibrering från minne
 	DACB.CH1OFFSETCAL = 0x0C; //readCalibByte(PRODSIGNATURES_DACB0OFFCAL);
 	
-	DACB.CTRLA = DAC_CH1EN_bm | DAC_ENABLE_bm;						//Kanal 0 och enable
+	DACB.CTRLA = DAC_CH1EN_bm | DAC_ENABLE_bm;						//Kanal 1 och enable
 	DACB.CTRLB = DAC_CHSEL_SINGLE1_gc;								//single mode
-	//DACB.CTRLC = DAC_REFSEL_INT1V_gc;								//referens spänning
 	DACB.CTRLC = DAC_REFSEL_AVCC_gc;								//För 3.3 V
-	//Möjlighet för offsetkallibrering finns
 	DACB.CH1DATA = 812;								
 	// CHnDATA = VDACn*4095/Vref
 }
@@ -135,17 +130,13 @@ void UsartSetup()
 }
 void UsartTx(unsigned char data)
 {
-	//while(!(USARTF0.STATUS & USART_RXCIF_bm));
-	//ch=USARTF0.DATA; //receive character from user
 	while(!(USARTF0.STATUS & USART_DREIF_bm));
 	USARTF0.DATA=data;
 }
 void UsartRx(unsigned char data)
 {
 	while(!(USARTF0.STATUS & USART_RXCIF_bm));
-	data=USARTF0.DATA; //receive character from user
-	//while(!(USARTF0.STATUS & USART_DREIF_bm));
-	//USARTF0.DATA=data;
+	data=USARTF0.DATA;
 }
 void UsartTxString(char* StringPtr)
 {

@@ -23,14 +23,12 @@ void ClockSetup()
 	OSC.CTRL	=	OSC_XOSCEN_bm;
 	while(!(OSC_STATUS & OSC_XOSCRDY_bm));
 	
-	CCP			=	CCP_IOREG_gc;				//Tillåt ändring av klockan. Configuration Change Protection av
-	CLK.CTRL	=	CLK_SCLKSEL_XOSC_gc;		//Välj extern klocka
+	CCP			=	CCP_IOREG_gc;			
+	CLK.CTRL	=	CLK_SCLKSEL_XOSC_gc;		
 
 	CCP			=	CCP_IOREG_gc;
 	CLK.PSCTRL	=	CLK_PSADIV_1_gc | CLK_PSBCDIV_1_1_gc;	//Div: clk_per4 = 1 Div: CLKper2 =1, CLK_cpu = 1, CLK_per =1
 	
-	CCP			=	CCP_IOREG_gc;
-	CLK.LOCK	=	CLK_LOCK_bm;				//Lås klockan tills nästa reset
 }
 void PortSetup()
 {
@@ -49,14 +47,8 @@ void DisableRtd()
 }
 void AdcSetup()
 {
-	//ADCA.CALL = readAdcCalibByte(PRODSIGNATURES_ADCACAL0);		//Läs in kalibrering från minne
-	//ADCA.CALH = readAdcCalibByte(PRODSIGNATURES_ADCACAL1);
-	
-	//ADC-setup, Clk_adc använder CLK_per
-	//ADCA temp
-
 	ADCA.PRESCALER	= ADC_PRESCALER_DIV4_gc;
-	ADCA.CTRLB		= ADC_RESOLUTION_12BIT_gc; //ADC-CONMODE_bm = 1
+	ADCA.CTRLB		= ADC_RESOLUTION_12BIT_gc; 
 	ADCA.CTRLA		= ADC_ENABLE_bm;
 
 	
@@ -66,12 +58,7 @@ void AdcSetup()
 	//ADCA.REFCTRL		= ADC_REFSEL_INTVCC_gc; //	 ADC_REFSEL_INTVCC_gc-- Vcc / 1.6
 	ADCA.REFCTRL		= 0x01<<4; //	 ADC_REFSEL_INTVCC_gc-- Vcc / 1.6
 	
-	ADCA.CH3.MUXCTRL	=	ADC_CH_MUXPOS_PIN2_gc;		//RTD1-AIN1 = P; RTD2-AIN2 = N
-
-	//ADCB.CAL = "kalibreringsvärde från fabrik"
-	//The CALL and CALH register pair hold the 12-bit calibration value. The ADC pipeline is calibrated during production
-	//programming, and the calibration value must be read from the signature row and written to the CAL register from
-	//software.
+	ADCA.CH3.MUXCTRL	=	ADC_CH_MUXPOS_PIN2_gc;
 }
 
 uint16_t sample() 
@@ -80,10 +67,10 @@ uint16_t sample()
 	ADCA.CH3.CTRL = ADC_CH_START_bm | ADC_CH_GAIN_1X_gc | ADC_CH_INPUTMODE_SINGLEENDED_gc;
 	
 	while(ADCA_CTRLA & ADC_CH3START_bm);			// Vänta på att AD är startad
-	while(!(ADCA_CH3_INTFLAGS & ADC_CH_CHIF_bm));	//Vänta på AD omvandling kanal1
+	while(!(ADCA_CH3_INTFLAGS & ADC_CH_CHIF_bm));	//Vänta på AD omvandling kanal3
 	
 	ADCA.INTFLAGS = ADC_CH3IF_bm;					//Nollställ ADC-interuptflagga
-	return data = ADCA.CH3.RES -  0x031; //0x00C2 jord offset
+	return data = ADCA.CH3.RES -  0x031; 
 }
 float code2voltage(uint16_t code)
 {
@@ -92,7 +79,7 @@ float code2voltage(uint16_t code)
 }
 float voltage2res(float voltage)
 {
-	float res = (voltage * 270.3)/(5-voltage) - 1; //-1 offset
+	float res = (voltage * 270.3)/(5-voltage) - 1; //-1 ohm offset 
 	return res;
 }
 	
@@ -128,8 +115,6 @@ void UsartSetup()
 }
 void UsartTx(unsigned char data)
 {
-	//while(!(USARTF0.STATUS & USART_RXCIF_bm));
-	//ch=USARTF0.DATA; //receive character from user
 	while(!(USARTF0.STATUS & USART_DREIF_bm));
 	USARTF0.DATA=data;
 }
@@ -137,8 +122,6 @@ void UsartRx(unsigned char data)
 {
 	while(!(USARTF0.STATUS & USART_RXCIF_bm));
 	data=USARTF0.DATA; //receive character from user
-	//while(!(USARTF0.STATUS & USART_DREIF_bm));
-	//USARTF0.DATA=data;
 }
 void UsartTxString(char* StringPtr)
 {
@@ -150,10 +133,6 @@ void UsartTxString(char* StringPtr)
 }
 float res2temp(float res)
 {
-	//return ((res/100)-1 ) / 0.00385; // +- kalibrerings-offset DÅLIG METOD
-	// T = (R/R0 – 1) / ?   where R0 = 100, and ? = 0.00385
-
-
 	//return 2.56965*res - 256.678;	//t = A*res + B		A = 2.56965 degC/ohm; B = -256.678 degC/ohm; err@ 25degC = 0.302119
 	return 2.57578*res - 257.631 + 0.2;
 }
